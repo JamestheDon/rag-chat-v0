@@ -1,0 +1,10 @@
+venv
+sql_app.db
+.env
+/documents
+__pycache__/
+models/__pycache__/
+routers/__pycache__/
+schemas/__pycache__/
+storage/
+utils/__pycache__/

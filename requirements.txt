@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+python-jose[cryptography]
+passlib[bcrypt]
+llama-index==0.11.9
+azure-storage-blob
+openai
+sentence-transformers
+python-dotenv
+nest-asyncio
+asyncio
