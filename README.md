@@ -29,7 +29,7 @@ Design database schemas for user data, chat history, and other relevant informat
 Implement data access layers and ORM models (e.g., SQLAlchemy).
 '''
 
-# Docker 
+# Run Docker locally
 - Build the docker image
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 -t rag-chat-v0-container/rag-chat-v0:latest --load .
@@ -38,5 +38,12 @@ docker buildx build --platform linux/amd64,linux/arm64 -t rag-chat-v0-container/
 ```bash
 docker run -d -p 80:80 --name rag-chat-v0-container rag-chat-v0-container/rag-chat-v0:latest
 ```
-- Push the docker image to the docker hub
+
+# Build docker image for Azure
+```bash
+docker build -t azcontainerregistryxyz.azurecr.io/rag-chat-v0:latest .
+```
+- Push the docker image to the azure container registry
+```bash
+docker push azcontainerregistryxyz.azurecr.io/rag-chat-v0:latest
 ```
