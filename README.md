@@ -41,7 +41,7 @@ docker run -d -p 80:80 --name rag-chat-v0-container rag-chat-v0-container/rag-ch
 
 # Build docker image for Azure
 ```bash
-docker build -t azcontainerregistryxyz.azurecr.io/rag-chat-v0:latest .
+docker build --platform linux/amd64 -t azcontainerregistryxyz.azurecr.io/rag-chat-v0:latest .
 ```
 - Push the docker image to the azure container registry
 ```bash

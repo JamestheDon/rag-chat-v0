@@ -11,7 +11,7 @@ __pycache__/
 
 # Exclude data directories
 /storage
-/documents
+
 
 # Exclude Docker-related files
 Dockerfile

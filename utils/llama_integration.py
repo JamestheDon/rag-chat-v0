@@ -17,7 +17,9 @@ import asyncio
 
 # Load environment variables
 load_dotenv()
-
+  # Get the absolute path to the documents directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DOCUMENTS_DIR = os.path.join(BASE_DIR, "documents")
 # Set up OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
 if not openai_api_key:

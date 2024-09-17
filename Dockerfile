@@ -16,6 +16,11 @@ COPY . .
 # Final stage
 FROM python:3.11-slim
 
+# Install SSH server
+RUN apt-get update && \
+    apt-get install -y openssh-server && \
+    mkdir /var/run/sshd
+
 # Set the working directory in the container
 WORKDIR /app
 
@@ -25,8 +30,8 @@ COPY --from=builder /install /usr/local
 # Copy the application code from the build stage
 COPY --from=builder /app /app
 
-# Expose port 80 (or the port your app listens on)
-EXPOSE 80
+# Expose ports
+EXPOSE 80 2222
 
-# Run the command to start your FastAPI application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+# Run the command to start your SSH server and FastAPI application
+CMD service ssh start && uvicorn main:app --host 0.0.0.0 --port 80
