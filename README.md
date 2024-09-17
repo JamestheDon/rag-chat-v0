@@ -28,3 +28,15 @@ Database Integration
 Design database schemas for user data, chat history, and other relevant information.
 Implement data access layers and ORM models (e.g., SQLAlchemy).
 '''
+
+# Docker 
+- Build the docker image
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 -t rag-chat-v0-container/rag-chat-v0:latest --load .
+```
+- Run the docker image
+```bash
+docker run -d -p 80:80 --name rag-chat-v0-container rag-chat-v0-container/rag-chat-v0:latest
+```
+- Push the docker image to the docker hub
+```

@@ -9,3 +9,6 @@ schemas/__pycache__/
 storage/
 utils/__pycache__/
 .DS_Store
+.azure
+*.pyc
+docs
