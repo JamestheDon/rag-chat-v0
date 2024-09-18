@@ -1,30 +1,65 @@
-# One-shot outputs for these prompts.
+# Build and Run Instructions for `rag-chat-v0` Server
 
-'''
-5. Backend Development
-Environment Setup
+## Prerequisites
 
-Configure virtual environments using venv or conda.
-Install necessary packages and dependencies.
-API Development
+- Install Python 3.10 or higher
+- Install `pip`
+- (Optional) Install Docker Desktop if you plan to use Docker
 
-Define API endpoints for the chat functionalities.
-Endpoints:
-/chat/sendMessage
-/chat/getResponse
-Implement authentication and authorization mechanisms (JWT tokens, OAuth2).
-Integrate Llama-Index
+1. **Clone the Repository**
 
-Data Preparation
-Collect and preprocess data required for the RAG model.
-Store processed data in Azure Blob Storage or Azure Files.
-Model Integration
-Integrate llama-index to handle retrieval and augmentation.
-Optimize model performance for production use.
-Error Handling
-Implement robust error handling around model inference.
-Database Integration
+ - **From Azure DevOps:**
 
-Design database schemas for user data, chat history, and other relevant information.
-Implement data access layers and ORM models (e.g., SQLAlchemy).
-'''
+     Make sure you have access to your Azure DevOps repository and have configured your credentials.
+
+     ```bash
+     git clone https://dev.azure.com/yourorganization/yourproject/_git/rag-chat-v0
+     cd rag-chat-v0
+     ```
+
+ - **From GitHub:**
+
+     ```bash
+     git clone https://github.com/yourusername/rag-chat-v0.git
+     cd rag-chat-v0
+     ```
+
+2. **Create a Virtual Environment**
+
+   ```bash
+   python -m venv .venv
+   ```
+
+3. **Activate the Virtual Environment**
+
+   - On Windows:
+
+     ```bash
+     .venv\Scripts\activate
+     ```
+
+   - On macOS and Linux:
+
+     ```bash
+     source .venv/bin/activate
+     ```
+
+4. **Install Dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. **Set Up Environment Variables**
+
+   Create a `.env` file in the project root directory and add necessary environment variables:
+
+   ```ini
+   OPENAI_API_KEY=your_openai_api_key
+   ```
+
+6. **Run the Server**
+
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port 8000
+   ```
