@@ -30,6 +30,9 @@ COPY --from=builder /install /usr/local
 # Copy the application code from the build stage
 COPY --from=builder /app /app
 
+# Ensure the documents directory is copied over
+COPY --from=builder /app/documents /app/documents
+
 # Expose ports
 EXPOSE 80 2222
 
