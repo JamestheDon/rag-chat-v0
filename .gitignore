@@ -8,3 +8,5 @@ routers/__pycache__/
 schemas/__pycache__/
 storage/
 utils/__pycache__/
+.azure  
+.DS_Store
