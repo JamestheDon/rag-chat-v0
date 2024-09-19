@@ -46,7 +46,7 @@ async def get_ai_response(user_input: str) -> str:
     global index
     if index is None:
         index = await update_or_create_index()
-    query_engine = index.as_query_engine()
+    query_engine = index.as_query_engine(similarity_top_k=10)
     response = await asyncio.to_thread(query_engine.query, user_input)
     return str(response)
 

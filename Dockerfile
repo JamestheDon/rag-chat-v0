@@ -40,7 +40,7 @@ EXPOSE 80
 #CMD ["gunicorn", "main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:80"]
 # 2 workers and 2 thr
 CMD ["gunicorn", "main:app", \
-     "--workers", "2", \
+     "--workers", "1", \
      "--worker-class", "custom_uvicorn_worker.CustomUvicornWorker", \
      "--bind", "0.0.0.0:80", \
      "--log-level", "info"]
