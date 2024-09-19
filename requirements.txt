@@ -7,5 +7,6 @@ python-jose
 nest-asyncio
 llama-index
 openai
+aiosqlite
 python-multipart
 python-dotenv
