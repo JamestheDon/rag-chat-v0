@@ -17,9 +17,9 @@ COPY . .
 FROM python:3.11-slim
 
 # Install SSH server
-RUN apt-get update && \
-    apt-get install -y openssh-server && \
-    mkdir /var/run/sshd
+#RUN apt-get update && \
+#    apt-get install -y openssh-server && \
+#    mkdir /var/run/sshd
 
 # Set the working directory in the container
 WORKDIR /app
@@ -34,7 +34,14 @@ COPY --from=builder /app /app
 COPY --from=builder /app/documents /app/documents
 
 # Expose ports
-EXPOSE 80 2222
+EXPOSE 80 
 
-# Run the command to start your SSH server and FastAPI application
-CMD service ssh start && uvicorn main:app --host 0.0.0.0 --port 80
+# The CMD line starts the Gunicorn server with Uvicorn workers, pointing to your FastAPI application in main.py.
+#CMD ["gunicorn", "main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:80"]
+# 2 workers and 2 thr
+CMD ["gunicorn", "main:app", \
+     "--workers", "2", \
+     "--worker-class", "custom_uvicorn_worker.CustomUvicornWorker", \
+     "--bind", "0.0.0.0:80", \
+     "--log-level", "info"]
+

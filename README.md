@@ -77,11 +77,16 @@
 # Run Docker locally
 - Build the docker image
 ```bash
-docker buildx build --platform linux/amd64,linux/arm64 -t rag-chat-v0-container/rag-chat-v0:latest --load .
+# docker buildx build --platform linux/amd64,linux/arm64 -t rag-chat-v0-container/rag-chat-v0:latest --load .
+./docker-build.sh # This will build the docker image.
 ```
 - Run the docker image
 ```bash
-docker run -d -p 80:80 --name rag-chat-v0-container rag-chat-v0-container/rag-chat-v0:latest
+#docker run -d -p 80:80 --name rag-chat-v0-container rag-chat-v0-container/rag-chat-v0:latest
+# Set the OPENAI_API_KEY environment variable
+export OPENAI_API_KEY=your_openai_api_key
+# Run the docker-start.sh script
+./docker-start.sh
 ```
 
 # Build docker image for Azure
@@ -91,4 +96,26 @@ docker build --platform linux/amd64 -t azcontainerregistryxyz.azurecr.io/rag-cha
 - Push the docker image to the azure container registry
 ```bash
 docker push azcontainerregistryxyz.azurecr.io/rag-chat-v0:latest
+```
+
+# Curl command to test the docker image
+- register a user, save the token and use it to authenticate
+```bash
+curl -X POST "https://<your-azure-app-name>.azurewebsites.net/auth/register" \\
+  -H "Content-Type: application/json" \\
+  -d '{\
+    "username": "james",\
+    "full_name": "New User",\
+    "email": "james@james.com",\
+    "password": "james"\
+  }'
+```
+# Query the chatbot
+```bash
+curl -X POST "https://<your-azure-app-name>.azurewebsites.net/chat/sendMessage" \
+  -H "Authorization: Bearer <your-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "what are the dates for these invoices?"
+  }'
 ```

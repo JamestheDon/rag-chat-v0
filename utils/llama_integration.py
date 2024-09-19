@@ -14,20 +14,30 @@ from llama_index.core.extractors import TitleExtractor, QuestionsAnsweredExtract
 import os
 from dotenv import load_dotenv
 import asyncio
-
+import sys
 # Load environment variables
-load_dotenv()
+# Determine if we're running in a development environment
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
+
+if ENVIRONMENT == 'development':
+    # Load environment variables from .env file
+    load_dotenv()
   # Get the absolute path to the documents directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DOCUMENTS_DIR = os.path.join(BASE_DIR, "documents")
 # Set up OpenAI API key
-openai_api_key = os.getenv("OPENAI_API_KEY")
-if not openai_api_key:
-    raise ValueError("OPENAI_API_KEY not found in environment variables")
 
+openai_api_key = os.getenv('OPENAI_API_KEY')
+if not openai_api_key:
+    if ENVIRONMENT == 'development':
+        print("Warning: OPENAI_API_KEY is not set. Using a default key for development.")
+        openai_api_key = 'default_dev_key'  # Replace with an appropriate default or mock key
+    else:
+        print("Error: OPENAI_API_KEY must be set in the environment.")
+        sys.exit(1)
 # Configure global Settings
 # Valid models: valid OpenAI model name in: o1-preview, o1-preview-2024-09-12, o1-mini, o1-mini-2024-09-12, gpt-4, gpt-4-32k, gpt-4-1106-preview, gpt-4-0125-preview, gpt-4-turbo-preview, gpt-4-vision-preview, gpt-4-1106-vision-preview, gpt-4-turbo-2024-04-09, gpt-4-turbo, gpt-4o, gpt-4o-2024-05-13, gpt-4o-2024-08-06, gpt-4o-mini, gpt-4o-mini-2024-07-18, gpt-4-0613, gpt-4-32k-0613, gpt-4-0314, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-3.5-turbo-0125, gpt-3.5-turbo-1106, gpt-3.5-turbo-0613, gpt-3.5-turbo-16k-0613, gpt-3.5-turbo-0301, text-davinci-003, text-davinci-002, gpt-3.5-turbo-instruct, text-ada-001, text-babbage-001, text-curie-001, ada, babbage, curie, davinci, gpt-35-turbo-16k, gpt-35-turbo, gpt-35-turbo-0125, gpt-35-turbo-1106, gpt-35-turbo-0613, gpt-35-turbo-16k-0613
-Settings.llm = OpenAI(model="gpt-4o", api_key=openai_api_key)
+Settings.llm = OpenAI(model="gpt-4o-mini", api_key=openai_api_key)
 
 Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
 
