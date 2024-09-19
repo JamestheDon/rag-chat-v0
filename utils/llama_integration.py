@@ -19,10 +19,6 @@ ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
 
 if ENVIRONMENT == 'development':
     load_dotenv()
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DOCUMENTS_DIR = os.path.join(BASE_DIR, "documents")
-
 # Set up OpenAI API key
 openai_api_key = os.getenv('OPENAI_API_KEY', 'default_dev_key')
 
