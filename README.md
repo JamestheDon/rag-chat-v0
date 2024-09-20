@@ -6,16 +6,6 @@
 - Install `pip`
 - (Optional) Install Docker Desktop if you plan to use Docker
 
-### Install Docker Desktop(Optional)
-
-- **For Windows and macOS:**
-  - Download Docker Desktop from the [official website](https://www.docker.com/products/docker-desktop).
-  - Run the installer and follow the on-screen instructions.
-  - After installation, launch Docker Desktop to finish the setup.
-
-
-## Setup Without Docker
-
 1. **Clone the Repository**
 
  - **From Azure DevOps:**

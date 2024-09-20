@@ -10,5 +10,8 @@ storage/
 utils/__pycache__/
 .DS_Store
 .azure
+<<<<<<< HEAD
 *.pyc
 docs
+=======
+>>>>>>> rag-chat-v0-streaming

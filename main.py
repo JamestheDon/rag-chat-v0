@@ -9,12 +9,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, chat
 from database import engine, Base
+from utils.llama_integration import update_or_create_index
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 # Configure your async database engine
-DATABASE_URL = "sqlite+aiosqlite:///./test.db"  # Example for SQLite
+DATABASE_URL = "sqlite+aiosqlite:///./sql_app.db"  # Example for SQLite
 async_engine = create_async_engine(DATABASE_URL, echo=True)
 
 # Create an async session
@@ -30,8 +31,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
     
     # Initialize your index
-    from utils.llama_integration import update_or_create_index
-    await update_or_create_index()
+    update_or_create_index()
 
     yield  # The application runs during this yield
 

@@ -4,7 +4,12 @@ from llama_index.core import (
     StorageContext,
     load_index_from_storage,
     Settings,
+    get_response_synthesizer
 )
+<<<<<<< HEAD
+=======
+from llama_index.core.query_engine import RetrieverQueryEngine
+>>>>>>> rag-chat-v0-streaming
 from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.ingestion import IngestionPipeline
@@ -13,6 +18,7 @@ from llama_index.core.extractors import TitleExtractor, QuestionsAnsweredExtract
 import os
 from dotenv import load_dotenv
 import asyncio
+import logging
 
 # Load environment variables
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
@@ -39,6 +45,7 @@ pipeline = IngestionPipeline(
 # Global variable for the index
 index = None
 
+<<<<<<< HEAD
 async def get_ai_response(user_input: str) -> str:
     """
     Generate an AI response using LlamaIndex.
@@ -49,6 +56,23 @@ async def get_ai_response(user_input: str) -> str:
     query_engine = index.as_query_engine(similarity_top_k=10)
     response = await asyncio.to_thread(query_engine.query, user_input)
     return str(response)
+=======
+async def get_ai_response(user_message: str):
+    logging.info(f"Processing message: {user_message}")
+    index = update_or_create_index()
+    synth = get_response_synthesizer(streaming=True)
+    retriever = index.as_retriever(similarity_top_k=10)  # Add the parameter here
+    query_engine = RetrieverQueryEngine(retriever=retriever, response_synthesizer=synth)
+    logging.info("Querying the engine...")
+    streaming_response = query_engine.query(user_message)
+    logging.info("Got streaming response, starting to yield tokens...")
+    token_count = 0
+    for text in streaming_response.response_gen:
+        token_count += 1
+        logging.info(f"Yielding token {token_count}: {text}")
+        yield text
+    logging.info(f"Finished yielding {token_count} tokens")
+>>>>>>> rag-chat-v0-streaming
 
 async def update_or_create_index(documents_dir="documents", force_reindex=False):
     """
