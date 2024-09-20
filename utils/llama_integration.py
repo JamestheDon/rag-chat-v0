@@ -4,8 +4,9 @@ from llama_index.core import (
     StorageContext,
     load_index_from_storage,
     Settings,
+    get_response_synthesizer
 )
-
+from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.ingestion import IngestionPipeline
@@ -14,6 +15,7 @@ from llama_index.core.extractors import TitleExtractor, QuestionsAnsweredExtract
 import os
 from dotenv import load_dotenv
 import asyncio
+import logging
 
 # Load environment variables
 load_dotenv()
@@ -46,14 +48,21 @@ def print_node_contents(index):
         print(f"Metadata: {node.metadata}")
         print("-" * 50)
 
-async def get_ai_response(user_input: str) -> str:
-    """
-    Integrate with LlamaIndex to generate an AI response.
-    """
+async def get_ai_response(user_message: str):
+    logging.info(f"Processing message: {user_message}")
     index = update_or_create_index()
-    query_engine = index.as_query_engine()
-    response = await asyncio.to_thread(query_engine.query, user_input)
-    return str(response)
+    synth = get_response_synthesizer(streaming=True)
+    retriever = index.as_retriever()
+    query_engine = RetrieverQueryEngine(retriever=retriever, response_synthesizer=synth)
+    logging.info("Querying the engine...")
+    streaming_response = query_engine.query(user_message)
+    logging.info("Got streaming response, starting to yield tokens...")
+    token_count = 0
+    for text in streaming_response.response_gen:
+        token_count += 1
+        logging.info(f"Yielding token {token_count}: {text}")
+        yield text
+    logging.info(f"Finished yielding {token_count} tokens")
 
 def update_or_create_index(documents_dir="documents", force_reindex=False):
     """
