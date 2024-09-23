@@ -6,10 +6,7 @@ from llama_index.core import (
     Settings,
     get_response_synthesizer
 )
-<<<<<<< HEAD
-=======
 from llama_index.core.query_engine import RetrieverQueryEngine
->>>>>>> rag-chat-v0-streaming
 from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.ingestion import IngestionPipeline
@@ -45,18 +42,6 @@ pipeline = IngestionPipeline(
 # Global variable for the index
 index = None
 
-<<<<<<< HEAD
-async def get_ai_response(user_input: str) -> str:
-    """
-    Generate an AI response using LlamaIndex.
-    """
-    global index
-    if index is None:
-        index = await update_or_create_index()
-    query_engine = index.as_query_engine(similarity_top_k=10)
-    response = await asyncio.to_thread(query_engine.query, user_input)
-    return str(response)
-=======
 async def get_ai_response(user_message: str):
     logging.info(f"Processing message: {user_message}")
     index = update_or_create_index()
@@ -72,7 +57,6 @@ async def get_ai_response(user_message: str):
         logging.info(f"Yielding token {token_count}: {text}")
         yield text
     logging.info(f"Finished yielding {token_count} tokens")
->>>>>>> rag-chat-v0-streaming
 
 async def update_or_create_index(documents_dir="documents", force_reindex=False):
     """
