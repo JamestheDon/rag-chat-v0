@@ -44,7 +44,7 @@ index = None
 
 async def get_ai_response(user_message: str):
     logging.info(f"Processing message: {user_message}")
-    index = update_or_create_index()
+    index = await update_or_create_index()
     synth = get_response_synthesizer(streaming=True)
     retriever = index.as_retriever(similarity_top_k=10)  # Add the parameter here
     query_engine = RetrieverQueryEngine(retriever=retriever, response_synthesizer=synth)
