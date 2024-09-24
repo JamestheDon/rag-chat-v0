@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
     
     # Initialize your index
-    update_or_create_index()
+    await update_or_create_index()
 
     yield  # The application runs during this yield
 
