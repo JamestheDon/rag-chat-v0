@@ -1,20 +1,27 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from schemas import chat as chat_schemas
 from utils.security import oauth2_scheme
 from utils.llama_integration import get_ai_response
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-@router.post("/sendMessage", response_model=chat_schemas.Response)
-async def send_message(
-    message: chat_schemas.Message, token: str = Depends(oauth2_scheme)
-):
-    try:
-        # Assuming get_ai_response is an async function
-        response_text = await get_ai_response(message.content)
-        return {"content": response_text}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@router.post("/sendMessage")
+async def chat(message: chat_schemas.Message):
+    logging.info(f"Received message: {message.content}")
+    async def generate():
+        try:
+            async for token in get_ai_response(message.content):
+                logging.info(f"Yielding token: {token}")
+                yield f"data: {token}\n\n"
+            logging.info("Finished generating response")
+            yield "data: [END]\n\n"
+        except Exception as e:
+            logging.error(f"Error in generate: {str(e)}")
+            yield f"data: Error: {str(e)}\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 @router.get("/getResponse", response_model=chat_schemas.Response)
 async def get_response(token: str = Depends(oauth2_scheme)):
