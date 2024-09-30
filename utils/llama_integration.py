@@ -22,6 +22,7 @@ import random
 from llama_index.core.node_parser import NodeParser
 from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 import uuid
+import re
 
 # Load environment variables
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
@@ -220,7 +221,6 @@ async def get_ai_response(query: str):
             yield "Error: Unable to create or update index."
             return
 
-        # Get the query embedding
         query_embedding = await asyncio.to_thread(Settings.embed_model.get_text_embedding, query)
         query_embedding = ensure_embedding_shape(query_embedding)
 
@@ -234,8 +234,17 @@ async def get_ai_response(query: str):
         
         streaming_response = await query_engine.aquery(query)
         
+        buffer = ""
         async for text in streaming_response.async_response_gen():
-            yield text
+            buffer += text
+            words = buffer.split()
+            if len(words) > 1:
+                yield " ".join(words[:-1]) + " "
+                buffer = words[-1]
+        
+        if buffer:
+            yield buffer
+
     except Exception as e:
         logging.error(f"Error in get_ai_response: {str(e)}", exc_info=True)
         yield f"Error: {str(e)}"
