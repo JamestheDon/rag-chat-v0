@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from schemas import chat as chat_schemas
 from utils.security import oauth2_scheme
-from utils.llama_integration import get_ai_response
+from utils.llama_integration import get_ai_response, async_client
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -25,5 +25,11 @@ async def chat(message: chat_schemas.Message):
 
 @router.get("/getResponse", response_model=chat_schemas.Response)
 async def get_response(token: str = Depends(oauth2_scheme)):
-    # Retrieve the latest AI response (placeholder)
-    return {"content": "Latest AI response will be here."}
+    try:
+        # Use async_client to make a request to Ollama server
+        response = await async_client.get("http://localhost:11434/api/version")
+        version = response.json().get("version", "Unknown")
+        return {"content": f"Ollama server version: {version}"}
+    except Exception as e:
+        logging.error(f"Error getting Ollama version: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error communicating with Ollama server")
