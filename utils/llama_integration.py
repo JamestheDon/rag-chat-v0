@@ -23,6 +23,7 @@ from llama_index.core.node_parser import NodeParser
 from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 import uuid
 import re
+from httpx import AsyncClient
 
 # Load environment variables
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
@@ -216,6 +217,9 @@ async def update_or_create_index(documents_dir="documents", force_reindex=False)
 async def get_ai_response(query: str):
     logging.info(f"Processing message: {query}")
     try:
+        # Wait for Ollama connection to be established
+        await is_ollama_connected.wait()
+
         index = await update_or_create_index()
         if index is None:
             yield "Error: Unable to create or update index."
@@ -265,3 +269,31 @@ async def ensure_connection():
 
 # Start the connection check in the background
 asyncio.create_task(ensure_connection())
+
+# Global variables
+connection_check_task = None
+is_ollama_connected = asyncio.Event()
+
+async def check_ollama_connection():
+    async with AsyncClient() as client:
+        while True:
+            try:
+                response = await client.get("http://localhost:11434/api/version")
+                if response.status_code == 200:
+                    is_ollama_connected.set()
+                    logging.info("Ollama connection is alive")
+                else:
+                    is_ollama_connected.clear()
+                    logging.warning("Ollama connection lost")
+            except Exception as e:
+                is_ollama_connected.clear()
+                logging.warning(f"Error checking Ollama connection: {str(e)}")
+            await asyncio.sleep(60)  # Check every 60 seconds
+
+def start_connection_check():
+    global connection_check_task
+    if connection_check_task is None or connection_check_task.done():
+        connection_check_task = asyncio.create_task(check_ollama_connection())
+
+# Make sure to call this function when your application starts
+start_connection_check()
