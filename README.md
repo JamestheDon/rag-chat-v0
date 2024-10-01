@@ -63,3 +63,38 @@
    ```bash
    uvicorn main:app --host 0.0.0.0 --port 8000
    ```
+
+7. **Docker Ollama**
+   - Pull the ollama base image
+   ```bash
+   docker pullollama/ollama
+   ```
+   - Name and run the container
+   ```bash
+   docker run -d -v ollama:/root/.ollama -p 11434:11434 --name baseollama ollama/ollama
+   ```
+   - Verify there are no images yet in this base image: Should return an empty list.
+   ```bash
+   docker exec -it baseollama ollama list
+   ```
+   - Now get a small language model for the 'baseollama' image(this may take a while):
+   ```bash
+   docker exec -it baseollama ollama run phi3.5:latest
+   ```
+   **Generate a response from the model:**
+   ```bash
+  curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.1",
+      "prompt":"Why is the sky blue?"
+   }'
+   ```
+   **Chat with the model:**
+   ```bash
+   curl http://localhost:11434/api/chat -d '{
+  "model": "llama3.1",
+  "messages": [
+      { "role": "user", "content": "why is the sky blue?" }
+    ]
+  }'
+  ```
+  See the [API documentation](https://github.com/ollama/ollama?tab=readme-ov-file) for all endpoints.
