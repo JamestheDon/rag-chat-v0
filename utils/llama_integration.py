@@ -49,12 +49,12 @@ async def initialize_ollama_with_retry(max_retries=5, initial_delay=1):
     for attempt in range(max_retries):
         try:
             llm = Ollama(
-                model="phi3.5:latest", 
+                model="llama3.2:1b", 
                 base_url="http://localhost:11434",
                 request_timeout=60.0
             )
             embed_model = OllamaEmbedding(
-                model_name="phi3.5:latest",
+                model_name="llama3.2:1b",
                 base_url="http://localhost:11434"
             )
             
@@ -94,7 +94,8 @@ pipeline = IngestionPipeline(
 index = None
 
 # We'll use the larger dimension to ensure we can accommodate both sizes
-EMBEDDING_DIM = 3072
+# EMBEDDING_DIM = 3072 # phi3.5
+EMBEDDING_DIM = 2048 # llama3.2:1b
 
 def ensure_embedding_shape(embedding):
     if isinstance(embedding, list):
