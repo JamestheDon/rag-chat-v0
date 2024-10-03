@@ -12,9 +12,9 @@ async def chat(message: chat_schemas.Message):
     logging.info(f"Received message: {message.content}")
     async def generate():
         try:
-            async for token in get_ai_response(message.content):
-                logging.info(f"Yielding token: {token}")
-                yield f"data: {token}\n\n"
+            async for chunk in get_ai_response(message.content):
+                logging.info(f"Yielding chunk: {chunk}")
+                yield f"data: {chunk}\n\n"
             logging.info("Finished generating response")
             yield "data: [END]\n\n"
         except Exception as e:
