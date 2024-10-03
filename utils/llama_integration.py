@@ -64,17 +64,18 @@ async def get_ai_response(user_message: str):
     
     streaming_response = query_engine.query(user_message)
     
-    token_count = 0
+    buffer = ""
     for text in streaming_response.response_gen:
-        token_count += 1
-   #    logging.debug(f"Yielding token {token_count}: {text}")
-        yield text
-   # logging.info(f"Finished yielding {token_count} tokens")
+        buffer += text
+        if buffer.endswith((" ", ".", "!", "?", "\n")):
+            yield buffer
+            buffer = ""
+    
+    if buffer:
+        yield buffer
 
 async def update_or_create_index(documents_dir="documents", force_reindex=False):
-    """
-    Asynchronously update existing index or create a new one if it doesn't exist.
-    """
+    global index
     logging.info(f"Updating or creating index. force_reindex: {force_reindex}")
     
     if force_reindex or not os.path.exists("storage"):
@@ -88,7 +89,8 @@ async def update_or_create_index(documents_dir="documents", force_reindex=False)
         nodes = pipeline.run(documents=all_documents)
         logging.debug(f"Created {len(nodes)} nodes from documents")
         index = VectorStoreIndex(nodes)
-        logging.info(f"Created new index with {len(nodes)} nodes")
+        index.storage_context.persist()  # Add this line
+        logging.info(f"Created new index with {len(nodes)} nodes and persisted to storage")
     else:
         logging.info("Loading existing index...")
         storage_context = StorageContext.from_defaults(persist_dir="storage")
@@ -109,9 +111,9 @@ async def update_or_create_index(documents_dir="documents", force_reindex=False)
             new_nodes = pipeline.run(documents=new_documents)
             logging.debug(f"Created {len(new_nodes)} new nodes from new documents")
             index.insert_nodes(new_nodes)
-            logging.info(f"Added {len(new_nodes)} new nodes to existing index")
+            index.storage_context.persist()  # Add this line
+            logging.info(f"Added {len(new_nodes)} new nodes to existing index and persisted to storage")
         else:
             logging.info("No new documents found. Index is up to date.")
 
-    logging.info("Index persisted to storage")
     return index
