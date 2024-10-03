@@ -8,6 +8,7 @@ routers/__pycache__/
 schemas/__pycache__/
 storage/
 utils/__pycache__/
+
 .DS_Store
 .azure
 .vscode/*
