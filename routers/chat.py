@@ -1,3 +1,4 @@
+import json
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -13,13 +14,18 @@ async def chat(message: chat_schemas.Message):
     async def generate():
         try:
             async for chunk in get_ai_response(message.content):
-                logging.info(f"Yielding chunk: {chunk}")
-                yield f"data: {chunk}\n\n"
+                # Optional: Log or process the JSON data
+                try:
+                    json_data = json.loads(chunk.replace('data:', ''))
+                    logging.debug(f"Sending JSON chunk: {json_data}")
+                except json.JSONDecodeError:
+                    logging.warning(f"Failed to parse JSON from chunk: {chunk}")
+                yield chunk
             logging.info("Finished generating response")
-            yield "data: [END]\n\n"
         except Exception as e:
             logging.error(f"Error in generate: {str(e)}")
-            yield f"data: Error: {str(e)}\n\n"
+            error_json = json.dumps({"type": "error", "text": str(e)})
+            yield f"data:{error_json}\n"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 

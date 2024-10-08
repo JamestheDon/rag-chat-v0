@@ -16,6 +16,7 @@ import os
 from dotenv import load_dotenv
 import asyncio
 import logging
+import json
 
 # Load environment variables
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
@@ -35,7 +36,7 @@ else:  # 'development' or any other environment
 logging.info(f"Starting application in {ENVIRONMENT} environment")
 
 # Configure LlamaIndex Settings
-Settings.llm = OpenAI(model="gpt-4-turbo-preview", api_key=openai_api_key)
+Settings.llm = OpenAI(model="gpt-4o-mini", api_key=openai_api_key)
 Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small", api_key=openai_api_key)
 
 # Create an ingestion pipeline with transformations
@@ -53,6 +54,7 @@ index = None
 
 async def get_ai_response(user_message: str):
     logging.info(f"Processing message: {user_message}")
+
     index = await update_or_create_index()
     
     synth = get_response_synthesizer(streaming=True)
@@ -67,12 +69,34 @@ async def get_ai_response(user_message: str):
     buffer = ""
     for text in streaming_response.response_gen:
         buffer += text
-        if buffer.endswith((" ", ".", "!", "?", "\n")):
-            yield buffer
-            buffer = ""
+        lines = buffer.split('\n')
+        # Process complete lines
+        while len(lines) > 1:
+            line = lines.pop(0)
+            if line:
+                data = {
+                    "type": "content",
+                    "text": line + '\n'  # Add newline back to preserve formatting
+                }
+                json_data = json.dumps(data)
+                yield f"data: {json_data}\n\n"
+        
+        buffer = lines[0] if lines else ""
     
+    # Yield any remaining content in the buffer
     if buffer:
-        yield buffer
+        data = {
+            "type": "content",
+            "text": buffer
+        }
+        json_data = json.dumps(data)
+        yield f"data: {json_data}\n\n"
+    
+    end_data = {
+        "type": "end"
+    }
+    end_json = json.dumps(end_data)
+    yield f"data: {end_json}\n\n"
 
 async def update_or_create_index(documents_dir="documents", force_reindex=False):
     global index
