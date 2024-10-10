@@ -12,9 +12,9 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.extractors import TitleExtractor, QuestionsAnsweredExtractor
+from extractors.compliance_checker import ComplianceChecker, COMPLIANCE_CHECKER_TMPL
 import os
 from dotenv import load_dotenv
-import asyncio
 import logging
 import json
 
@@ -39,15 +39,30 @@ logging.info(f"Starting application in {ENVIRONMENT} environment")
 Settings.llm = OpenAI(model="gpt-4o-mini", api_key=openai_api_key)
 Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small", api_key=openai_api_key)
 
+from llama_index.core.base.llms.types import ChatMessage, MessageRole
+from llama_index.core.prompts.base import ChatPromptTemplate
+
+COMPLIANCE_CHECKER_TMPL = """\
+Here is the context:
+{context_str}
+
+Given the contextual information, \
+verify that the following invoice complies with \
+standard accounting practices and regulatory requirements, \
+noting any missing mandatory information or formatting issues.
+"""
 # Create an ingestion pipeline with transformations
+# Question Answering Extractor is using the DEFAULT_QUESTION_GEN_TMPL
 pipeline = IngestionPipeline(
     transformations=[
         SentenceSplitter(chunk_size=512, chunk_overlap=128),
         TitleExtractor(),
         QuestionsAnsweredExtractor(questions=5),
+        ComplianceChecker(issues=5, prompt_template=COMPLIANCE_CHECKER_TMPL),
         Settings.embed_model,
     ]
 )
+
 
 # Global variable for the index
 index = None
