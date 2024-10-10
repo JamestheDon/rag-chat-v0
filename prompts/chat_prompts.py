@@ -83,18 +83,48 @@ as well. Try using these summaries to generate better questions \
 that this context can answer.
 
 """
+COMPLIANCE_CHECKER_TMPL = """\
+Here is the context:
+{context_str}
 
+Given the contextual information, \
+verify that the following invoice complies with \
+standard accounting practices and regulatory requirements, \
+noting any missing mandatory information or formatting issues.
+"""
+
+"""   
 # text qa prompt
-TEXT_QA_SYSTEM_PROMPT = ChatMessage(
+COMPLIANCE_CHECKER_SYSTEM_PROMPT = ChatMessage(
     content=(
-        "You are an expert Q&A system that is trusted around the world.\n"
-        "Always answer the query using the provided context information, "
-        "and not prior knowledge.\n"
+        "You are a highly knowledgeable compliance officer specializing in financial regulations, accounting standards, and invoice auditing.\n"
+        "Always perform your analysis using only the provided context information, and do not rely on prior knowledge.\n"
         "Some rules to follow:\n"
-        "1. Never directly reference the given context in your answer.\n"
-        "2. Avoid statements like 'Based on the context, ...' or "
-        "'The context information ...' or anything along "
-        "those lines."
+        "1. Never directly reference the given context in your analysis.\n"
+        "2. Avoid statements like 'Based on the context, ...' or 'The context information ...' or anything along those lines.\n"
+        "3. Provide clear, concise, and professional responses focusing on compliance-related issues."
     ),
     role=MessageRole.SYSTEM,
 )
+
+COMPLIANCE_CHECKER_PROMPT_TMPL_MSGS = [
+    COMPLIANCE_CHECKER_SYSTEM_PROMPT,
+    ChatMessage(
+        content=(
+            "Context information is below.\n"
+            "---------------------\n"
+            "{context_str}\n"
+            "---------------------\n"
+            "Given the context information and not prior knowledge, \
+            verify that the following invoice complies with \
+            standard accounting practices and regulatory requirements, \
+            noting any missing mandatory information or formatting issues.\n"
+            "Query: {query_str}\n"
+            "Answer: "
+        ),
+        role=MessageRole.USER,
+    ),
+]
+
+CHAT_COMPLIANCE_CHECKER_PROMPT = ChatPromptTemplate(message_templates=COMPLIANCE_CHECKER_PROMPT_TMPL_MSGS)
+"""
