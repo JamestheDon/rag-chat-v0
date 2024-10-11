@@ -39,9 +39,19 @@ logging.info(f"Starting application in {ENVIRONMENT} environment")
 Settings.llm = OpenAI(model="gpt-4o-mini", api_key=openai_api_key)
 Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small", api_key=openai_api_key)
 
-from llama_index.core.base.llms.types import ChatMessage, MessageRole
-from llama_index.core.prompts.base import ChatPromptTemplate
+DEFAULT_QUESTION_GEN_TMPL = """\
+Here is the context:
+{context_str}
 
+Given the contextual information, \
+generate {num_questions} questions this context can provide \
+specific answers to which are unlikely to be found elsewhere.
+
+Higher-level summaries of surrounding context may be provided \
+as well. Try using these summaries to generate better questions \
+that this context can answer.
+
+"""
 COMPLIANCE_CHECKER_TMPL = """\
 Here is the context:
 {context_str}
