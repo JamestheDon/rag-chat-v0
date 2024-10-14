@@ -2,6 +2,7 @@
 sql_app.db
 .env
 /documents
+/documents-test
 __pycache__/
 models/__pycache__/
 routers/__pycache__/
