@@ -22,9 +22,11 @@ import random
 from llama_index.core.node_parser import NodeParser
 from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 import uuid
+from extractors.compliance_checker import ComplianceChecker
 import re
 from httpx import AsyncClient
 import json
+import colorlog
 
 # Load environment variables
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
@@ -34,9 +36,30 @@ if ENVIRONMENT == 'development':
 
 # Configure logging based on the environment
 if ENVIRONMENT == 'production':
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    log_format = '%(asctime)s - %(log_color)s%(levelname)s%(reset)s - %(message)s'
+    logging.basicConfig(level=logging.INFO)
 else:  # 'development' or any other environment
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    log_format = '%(asctime)s - %(log_color)s%(levelname)s%(reset)s - %(message)s'
+    logging.basicConfig(level=logging.DEBUG)
+
+handler = colorlog.StreamHandler()
+handler.setFormatter(colorlog.ColoredFormatter(
+    log_format,
+    datefmt=None,
+    reset=True,
+    log_colors={
+        'DEBUG': 'black',
+        'INFO': 'green',
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+        'CRITICAL': 'red,bg_white',
+    },
+    secondary_log_colors={},
+    style='%'
+))
+
+logger = colorlog.getLogger()
+logger.addHandler(handler)
 
 logging.info(f"Starting application in {ENVIRONMENT} environment")
 
@@ -49,25 +72,29 @@ async_client = httpx.AsyncClient(
 async def initialize_ollama_with_retry(max_retries=5, initial_delay=1):
     for attempt in range(max_retries):
         try:
+            model_name = "llama3.2:1b"  # Or another suitable local model
             llm = Ollama(
-                model="llama3.2:1b", 
+                model=model_name, 
                 base_url="http://localhost:11434",
                 request_timeout=60.0
             )
             embed_model = OllamaEmbedding(
-                model_name="llama3.2:1b",
+                model_name=model_name,
                 base_url="http://localhost:11434"
             )
             
             # Test the connection
-            llm.complete("Test")  # Synchronous call
-            embed_model.get_text_embedding("Test")  # Synchronous call
+            llm.complete("Test")
+            test_embedding = embed_model.get_text_embedding("Test")
+            
+            if not isinstance(test_embedding, list) or not test_embedding:
+                raise ValueError("Invalid embedding result")
             
             return llm, embed_model
         except Exception as e:
             print(f"Attempt {attempt + 1} failed: {str(e)}")
             if attempt < max_retries - 1:
-                delay = initial_delay * (2 ** attempt)  # Exponential backoff
+                delay = initial_delay * (2 ** attempt)
                 await asyncio.sleep(delay)
             else:
                 raise Exception("Failed to initialize Ollama after multiple attempts")
@@ -80,21 +107,29 @@ async def initialize_settings():
         print(f"Failed to initialize Ollama: {str(e)}")
         # Handle the error (e.g., fall back to a different model or exit the application)
 
+async def setup_application():
+    await initialize_settings()
 
-# Create an ingestion pipeline with transformations
-pipeline = IngestionPipeline(
-    transformations=[
-        SentenceSplitter(chunk_size=512, chunk_overlap=128),
-        TitleExtractor(),
-        QuestionsAnsweredExtractor(questions=5),
-        Settings.embed_model,
-    ]
-)
+    # Create an ingestion pipeline with transformations
+    global pipeline
+    pipeline = IngestionPipeline(
+        transformations=[
+            SentenceSplitter(chunk_size=512, chunk_overlap=128),
+            TitleExtractor(),
+            QuestionsAnsweredExtractor(questions=5, llm=Settings.llm),
+            ComplianceChecker(llm=Settings.llm),
+            Settings.embed_model,
+        ]
+    )
+
+# Call this function when starting your application
+asyncio.run(setup_application())
 
 # Global variable for the index
 index = None
 
 # We'll use the larger dimension to ensure we can accommodate both sizes
+# EMBEDDING_DIM = 1536 # text-embedding-ada-002
 # EMBEDDING_DIM = 3072 # phi3.5
 EMBEDDING_DIM = 2048 # llama3.2:1b
 
@@ -227,7 +262,7 @@ async def get_ai_response(query: str):
             yield json.dumps({"type": "error", "text": "Unable to create or update index."})
             return
 
-        query_embedding = await asyncio.to_thread(Settings.embed_model.get_text_embedding, query)
+        query_embedding = Settings.embed_model.get_text_embedding(query)
         query_embedding = ensure_embedding_shape(query_embedding)
 
         synth = get_response_synthesizer(streaming=True)

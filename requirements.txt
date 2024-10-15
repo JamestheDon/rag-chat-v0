@@ -13,3 +13,4 @@ nest-asyncio
 asyncio
 llama-index-llms-ollama
 llama-index-embeddings-ollama
+colorlog
