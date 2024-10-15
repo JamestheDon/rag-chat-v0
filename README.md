@@ -50,16 +50,9 @@
    pip install -r requirements.txt
    ```
 
-5. **Set Up Environment Variables**
-
-   Create a `.env` file in the project root directory and add necessary environment variables:
-
-   ```ini
-   OPENAI_API_KEY=your_openai_api_key
-   ```
 ## Running a local LLM
-
-6. **Docker Ollama**
+- Remove any openai api key from .env to protect from fallingback to openai for chat completion and embedding.
+5. **Docker Ollama**
    - Using llama3.2:1b as the model
    - Pull the ollama base image
    ```bash
@@ -67,15 +60,16 @@
    ```
    - Name and run the container
    ```bash
-   docker run -d -v ollama:/root/.ollama -p 11434:11434 --name baseollama ollama/ollama
+   docker run -d -v ollama:/root/.ollama -p 11434:11434 --name <container_name> ollama/ollama
    ```
    - Verify there are no images yet in this base image: Should return an empty list.
    ```bash
-   docker exec -it baseollama ollama list
+   docker exec -it <container_name> ollama list
    ```
-   - Now get a small language model for the 'baseollama' image(this may take a while):
+   - Now get a small language model for the <container_name> (this may take a while):
    ```bash
-   docker exec -it baseollama ollama run llama3.2:1b
+
+   docker exec -it <container_name> ollama run llama3.2:1b # this may take a while
    ```
    **Generate a response from the model:**
    ```bash
@@ -95,7 +89,7 @@
   ```
   See the [API documentation](https://github.com/ollama/ollama?tab=readme-ov-file) for all endpoints.
 
-  7. **Run the Server**
+  6. **Run the Server**
    
    ```bash
    uvicorn main:app --loop asyncio --reload --host 0.0.0.0 --port 8000

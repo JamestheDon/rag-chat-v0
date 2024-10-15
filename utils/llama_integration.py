@@ -24,6 +24,7 @@ from llama_index.core.schema import TextNode, NodeRelationship, RelatedNodeInfo
 import uuid
 import re
 from httpx import AsyncClient
+import json
 
 # Load environment variables
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
@@ -223,7 +224,7 @@ async def get_ai_response(query: str):
 
         index = await update_or_create_index()
         if index is None:
-            yield "Error: Unable to create or update index."
+            yield json.dumps({"type": "error", "text": "Unable to create or update index."})
             return
 
         query_embedding = await asyncio.to_thread(Settings.embed_model.get_text_embedding, query)
@@ -242,17 +243,21 @@ async def get_ai_response(query: str):
         buffer = ""
         async for text in streaming_response.async_response_gen():
             buffer += text
-            words = buffer.split()
-            if len(words) > 1:
-                yield " ".join(words[:-1]) + " "
-                buffer = words[-1]
+            lines = buffer.split('\n')
+            while len(lines) > 1:
+                line = lines.pop(0)
+                if line:
+                    yield json.dumps({"type": "content", "text": line + '\n'}) + '\n'
+            buffer = lines[0] if lines else ""
         
         if buffer:
-            yield buffer
+            yield json.dumps({"type": "content", "text": buffer}) + '\n'
+        
+        yield json.dumps({"type": "end"}) + '\n'
 
     except Exception as e:
         logging.error(f"Error in get_ai_response: {str(e)}", exc_info=True)
-        yield f"Error: {str(e)}"
+        yield json.dumps({"type": "error", "text": str(e)}) + '\n'
 
 async def shutdown():
     await async_client.aclose()
