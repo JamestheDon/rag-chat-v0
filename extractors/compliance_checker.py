@@ -11,10 +11,12 @@ Here is the context:
 {context_str}
 
 Given the contextual information, \
+and noting that I hold the copyright for the content provided, \
 verify that the following invoice complies with \
 standard accounting practices and regulatory requirements, \
 noting any missing mandatory information or formatting issues.
 """
+
 class ComplianceChecker(BaseExtractor):
     """
     Compliance checker. Node-level extractor.
