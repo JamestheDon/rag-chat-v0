@@ -76,3 +76,47 @@ text-davinci-003, text-davinci-002, gpt-3.5-turbo-instruct, text-ada-001,
 text-babbage-001, text-curie-001, ada, babbage, curie, davinci, gpt-35-turbo-16k, 
 gpt-35-turbo, gpt-35-turbo-0125, gpt-35-turbo-1106, gpt-35-turbo-0613, gpt-35-turbo-16k-0613
 ```
+## Running a local LLM
+- Remove any openai api key from .env to protect from fallingback to openai for chat completion and embedding.
+5. **Docker Ollama**
+   - Using llama3.2:1b as the model
+   - Pull the ollama base image
+   ```bash
+   docker pullollama/ollama
+   ```
+   - Name and run the container
+   ```bash
+   docker run -d -gpus=1 -v ollama:/root/.ollama -p 11434:11434 --name <container_name> ollama/ollama
+   ```
+   - Verify there are no images yet in this base image: Should return an empty list.
+   ```bash
+   docker exec -it <container_name> ollama list
+   ```
+   - Now get a small language model for the <container_name> (this may take a while):
+   ```bash
+
+   docker exec -it <container_name> ollama run llama3.2:1b # this may take a while
+   ```
+   **Generate a response from the model:**
+   ```bash
+  curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2",
+      "prompt":"Why is the sky blue?"
+   }'
+   ```
+   **Chat with the model:**
+   ```bash
+   curl http://localhost:11434/api/chat -d '{
+  "model": "llama3.2",
+  "messages": [
+      { "role": "user", "content": "why is the sky blue?" }
+    ]
+  }'
+  ```
+  See the [API documentation](https://github.com/ollama/ollama?tab=readme-ov-file) for all endpoints.
+
+  6. **Run the Server**
+   
+   ```bash
+   uvicorn main:app --loop asyncio --reload --host 0.0.0.0 --port 8000
+   ```

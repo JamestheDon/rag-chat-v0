@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from schemas import chat as chat_schemas
 from utils.security import oauth2_scheme
-from utils.llama_integration import get_ai_response
-
+#from utils.llama_integration import get_ai_response
+from utils.llama_chat import get_ai_response
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 @router.post("/sendMessage")
