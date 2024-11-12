@@ -6,6 +6,8 @@
 - Install `pip`
 - (Optional) Install Docker Desktop if you plan to use Docker
 
+
+
 1. **Clone the Repository**
 
  - **From Azure DevOps:**
@@ -120,3 +122,12 @@ gpt-35-turbo, gpt-35-turbo-0125, gpt-35-turbo-1106, gpt-35-turbo-0613, gpt-35-tu
    ```bash
    uvicorn main:app --loop asyncio --reload --host 0.0.0.0 --port 8000
    ```
+
+# Choosing LLM size
+Here’s the data from the table converted to Markdown format:
+
+| Parameter Size | Strengths                                      | Weaknesses                                | Best Use Cases                                       |
+|----------------|------------------------------------------------|-------------------------------------------|------------------------------------------------------|
+| 1 Billion      | Resource-efficient, fast, easy to fine-tune    | Limited understanding, less coherent text | Simple classification, basic chatbots, embedded systems |
+| 7 Billion      | Balanced performance, improved coherence, versatile | Requires more resources, moderate reasoning | Content generation, customer support, summarization  |
+| 70 Billion     | Advanced understanding, high coherence, complex reasoning | Resource-intensive, higher latency, costly | Advanced assistants, professional content, complex problem solving |

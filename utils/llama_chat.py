@@ -18,6 +18,7 @@ import logging
 import json
 from llama_index.readers.file import UnstructuredReader
 import asyncio
+from extractors.compliance_checker import ComplianceChecker, COMPLIANCE_CHECKER_TMPL
 # Load environment variables
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
 
@@ -36,8 +37,8 @@ else:  # 'development' or any other environment
 logging.info(f"Starting application in {ENVIRONMENT} environment")
 
 
-LLM_TIMEOUT = 900.0  # 15 minutes for LLM requests
-EMBEDDING_TIMEOUT = 900.0  # 15 minutes for embedding requests
+LLM_TIMEOUT = 10000.0  # 15 minutes for LLM requests
+EMBEDDING_TIMEOUT = 10000.0  # 15 minutes for embedding requests
 
 #Settings.llm = Ollama(request_timeout=LLM_TIMEOUT, model="hf.co/bartowski/Llama-3.1-Nemotron-70B-Instruct-HF-GGUF:IQ1_M", base_url="http://localhost:11434",)
 Settings.llm = Ollama(request_timeout=LLM_TIMEOUT, model="llama3.2:1b", base_url="http://localhost:11434",)
@@ -63,7 +64,7 @@ pipeline = IngestionPipeline(
         SentenceSplitter(chunk_size=512, chunk_overlap=128, separator="|", paragraph_separator="[]"),
        # TitleExtractor(),
        # QuestionsAnsweredExtractor(questions=5),
-       
+       ComplianceChecker(issues=1, prompt_template=COMPLIANCE_CHECKER_TMPL),
         Settings.embed_model,
     ]
 )
@@ -82,33 +83,11 @@ async def get_ai_response(user_message: str):
     #retriever = index.as_retriever()
     memory = ChatMemoryBuffer.from_defaults(token_limit=1500)
     #logging.debug(f"Retriever created with similarity_top_k={similarity_top_k}")
-    chat_engine = index.as_chat_engine(chat_mode="context", memory=memory, llm=Settings.llm, verbose=True, system_prompt="You are processing invoices in the LEDES1998B format. \
-                                       Each invoice has the following structured data fields. Ensure that the extracted information aligns with each column name below: \
-                                       INVOICE_DATE: The date the invoice was issued. \
-                                       INVOICE_NUMBER: Unique identifier for the invoice. \
-                                       CLIENT_ID: Identifier for the client. \
-                                       LAW_FIRM_MATTER_ID: Identifier for the law firm’s matter or project. \
-                                       INVOICE_TOTAL: Total amount on the invoice. \
-                                       BILLING_START_DATE: Start date of the billing period covered by this invoice. \
-                                       BILLING_END_DATE: End date of the billing period covered by this invoice. \
-                                       INVOICE_DESCRIPTION: Brief description of the invoice contents or purpose. \
-                                       LINE_ITEM_NUMBER: Unique identifier for each line item within the invoice. \
-                                       EXP/FEE/INV_ADJ_TYPE: Type of line item adjustment or expense/fee indicator. \
-                                       LINE_ITEM_NUMBER_OF_UNITS: Quantity of units for the line item. \
-                                       LINE_ITEM_ADJUSTMENT_AMOUNT: Adjustment amount for the line item, if applicable. \
-                                       LINE_ITEM_TOTAL: Total amount for the line item. \
-                                       LINE_ITEM_DATE: Date associated with this line item’s activity or expense. \
-                                       LINE_ITEM_TASK_CODE: Task code associated with this line item. \
-                                       LINE_ITEM_EXPENSE_CODE: Expense code for this line item. \
-                                       LINE_ITEM_ACTIVITY_CODE: Activity code for this line item. \
-                                       TIMEKEEPER_ID: Identifier for the timekeeper or service provider. \
-                                       LINE_ITEM_DESCRIPTION: Description of the line item. \
-                                       LAW_FIRM_ID: Identifier for the law firm. \
-                                       LINE_ITEM_UNIT_COST: Cost per unit of the line item. \
-                                       TIMEKEEPER_NAME: Name of the timekeeper or service provider. \
-                                       TIMEKEEPER_CLASSIFICATION: Classification of the timekeeper (e.g., partner, associate). \
-                                       CLIENT_MATTER_ID: Identifier for the client’s matter or project. \
-                                       Ensure consistency with this structure and capture all relevant details as labeled above. ")
+    chat_engine = index.as_chat_engine(chat_mode="context", memory=memory, llm=Settings.llm, verbose=True, system_prompt="You are expert invoice reviewer.")
+
+    '''
+    chat_engine = index.as_chat_engine(chat_mode="context", memory=memory, llm=Settings.llm, verbose=True, system_prompt="")
+    '''
     #query_engine = RetrieverQueryEngine(retriever=retriever, response_synthesizer=synth)
     streaming_response = chat_engine.stream_chat(user_message)
     #streaming_response = query_engine.query(user_message)

@@ -11,6 +11,7 @@ sentence-transformers
 python-dotenv
 nest-asyncio
 asyncio
+aiosqlite
 llama-index-llms-ollama
 llama-index-embeddings-ollama
 llama-index-embeddings-huggingface

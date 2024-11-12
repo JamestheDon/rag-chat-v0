@@ -6,15 +6,50 @@ from llama_index.core.prompts import PromptTemplate
 from llama_index.core.schema import BaseNode, TextNode
 from llama_index.core.settings import Settings
 from llama_index.core.async_utils import DEFAULT_NUM_WORKERS, run_jobs
+
+'''
+The field names extracted from the LEDES1998B format invoice are as follows:
+For each invoice line item, list the LINE_ITEM_NUMBER and indicate whether each field is 'Valid' or 'Invalid' based on whether it has an empty value. Do not provide any explanations.
+Please present the results using pipe | characters as a separators and [] to indicate the end of a line.
+'''
+
 COMPLIANCE_CHECKER_TMPL = """\
-Here is the context:
+Please check the following invoice for invalid field data. An empty value is invalid; any string or number is valid. Only consider the following fields:
+
+1. INVOICE_DATE
+2. INVOICE_NUMBER
+3. CLIENT_ID
+4. LAW_FIRM_MATTER_ID
+5. INVOICE_TOTAL
+6. BILLING_START_DATE
+7. BILLING_END_DATE
+8. INVOICE_DESCRIPTION
+9. LINE_ITEM_NUMBER
+10. EXP/FEE/INV_ADJ_TYPE
+11. LINE_ITEM_NUMBER_OF_UNITS
+12. LINE_ITEM_ADJUSTMENT_AMOUNT
+13. LINE_ITEM_TOTAL
+14. LINE_ITEM_DATE
+15. LINE_ITEM_TASK_CODE
+16. LINE_ITEM_EXPENSE_CODE
+17. LINE_ITEM_ACTIVITY_CODE
+18. TIMEKEEPER_ID
+19. LINE_ITEM_DESCRIPTION
+20. LAW_FIRM_ID
+21. LINE_ITEM_UNIT_COST
+22. TIMEKEEPER_NAME
+23. TIMEKEEPER_CLASSIFICATION
+24. CLIENT_MATTER_ID
+
+Ignore any fields not listed above.
+
+Note: The data fields use a pipe | character as a separator, and [] indicates the end of a line.
+
+Please only return the line item number and the column number for each invalid field.
+
+Here is the invoice data:
 {context_str}
 
-Given the contextual information, \
-and noting that I hold the copyright for the content provided, \
-verify that the following invoice complies with \
-standard accounting practices and regulatory requirements, \
-noting any missing mandatory information or formatting issues.
 """
 
 class ComplianceChecker(BaseExtractor):
@@ -76,12 +111,14 @@ class ComplianceChecker(BaseExtractor):
         if self.is_text_node_only and not isinstance(node, TextNode):
             return {}
 
-        context_str = node.get_content(metadata_mode=self.metadata_mode)
+        context_str = node.get_content(metadata_mode="none")
+        
+        print("context_str======>", context_str)
         prompt = PromptTemplate(template=self.prompt_template)
         issues = await self.llm.apredict(
             prompt, num_issues=self.issues, context_str=context_str
         )
-
+        print("issues======>", issues)
         return {"compliance_issues": issues.strip()}
 
     async def aextract(self, nodes: Sequence[BaseNode]) -> List[Dict]:

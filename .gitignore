@@ -11,5 +11,5 @@ utils/__pycache__/
 /documents-test
 .DS_Store
 .azure
-
+rag_chat_v0.egg-info
 notes.md
